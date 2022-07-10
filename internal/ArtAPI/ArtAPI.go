@@ -30,9 +30,8 @@ type ArtworkImageID struct {
 	ImageID string `json:"image_id"`
 }
 
-func GetArtAPI() string {
+func GetArtAPI(query string) string {
 	BaseURL := "https://api.artic.edu/api/v1/artworks/"
-	query := "oh my god"
 	query = strings.ToLower(strings.ReplaceAll(query, " ", "+"))
 	fmt.Println(query)
 	artList := getid(query, BaseURL)
@@ -40,9 +39,8 @@ func GetArtAPI() string {
 		for _, art := range artList.Data[:1] {
 			return "https://www.artic.edu/iiif/2/" + getImageId(art.ID, BaseURL) + "/full/843,/0/default.jpg"
 		}
-	} else {
-		return "Can't find paintings"
 	}
+	return "Can't find paintings"
 	//if len(artList.Data) > 0 {
 	//	for _, art := range artList.Data[:3] {
 	//		fmt.Println(art.Title)

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	ArtAPI "github.com/nzelepukin/ArtworkTelegramBot/internal/ArtAPI"
 )
 
 func main() {
@@ -26,8 +27,8 @@ func main() {
 	for update := range updates {
 		if update.Message != nil { // If we got a message
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+			artwork := ArtAPI.GetArtAPI(update.Message.Text)
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, artwork)
 			msg.ReplyToMessageID = update.Message.MessageID
 
 			bot.Send(msg)
