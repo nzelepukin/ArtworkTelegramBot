@@ -6,10 +6,20 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	ArtAPI "github.com/nzelepukin/ArtworkTelegramBot/internal/ArtAPI"
+	TranslateAPI "github.com/nzelepukin/ArtworkTelegramBot/internal/TranslateAPI"
 )
 
+func getenv(key, fallback string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return fallback
+	}
+	return value
+}
+
 func main() {
-	TOKEN := os.Getenv("BOT_TOKEN")
+	TOKEN := getenv("BOT_TOKEN", "")
+	DETECT_LANG_URL := getenv("DETECT_LANG_URL", "")
 	bot, err := tgbotapi.NewBotAPI(TOKEN)
 	if err != nil {
 		log.Panic(err)
@@ -27,7 +37,11 @@ func main() {
 	for update := range updates {
 		if update.Message != nil { // If we got a message
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-			artwork := ArtAPI.GetArtAPI(update.Message.Text)
+			artworkquery := update.Message.Text
+			if !(DETECT_LANG_URL == "") {
+				artworkquery = TranslateAPI.TranslateAPI(update.Message.Text, DETECT_LANG_URL)
+			}
+			artwork := ArtAPI.GetArtAPI(artworkquery)
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, artwork)
 			msg.ReplyToMessageID = update.Message.MessageID
 

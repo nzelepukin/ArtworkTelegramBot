@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -36,19 +36,12 @@ func GetArtAPI(query string) string {
 	fmt.Println(query)
 	artList := getid(query, BaseURL)
 	if len(artList.Data) > 0 {
-		for _, art := range artList.Data[:1] {
-			return "https://www.artic.edu/iiif/2/" + getImageId(art.ID, BaseURL) + "/full/843,/0/default.jpg"
-		}
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+		art := artList.Data[r1.Intn(len(artList.Data)-1)]
+		return "https://www.artic.edu/iiif/2/" + getImageId(art.ID, BaseURL) + "/full/843,/0/default.jpg"
 	}
-	return "Can't find paintings"
-	//if len(artList.Data) > 0 {
-	//	for _, art := range artList.Data[:3] {
-	//		fmt.Println(art.Title)
-	//		saveFile("https://www.artic.edu/iiif/2/"+getImageId(art.ID, BaseURL)+"/full/843,/0/default.jpg", art.Title)
-	//	}
-	//} else {
-	//	fmt.Println("No artworks with query " + query)
-	//}
+	return "Can't find art with query"
 }
 
 func getid(query string, baseurl string) ArtworkList {
@@ -93,27 +86,4 @@ func getImageId(artid int64, baseurl string) string {
 	output := ArtworkInfo{}
 	_ = json.Unmarshal([]byte(string(text)), &output)
 	return output.Data.ImageID
-}
-
-func saveFile(url string, title string) {
-	httpClient := &http.Client{}
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(3))
-	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	out, err := os.Create("imgs/" + title + ".jpg")
-	defer out.Close()
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
